@@ -139,9 +139,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 @Override
                 public void run() {
                     goForwardImage();
-                    mHandler.postDelayed(this, 500);
+                    mHandler.postDelayed(this, 2000);
                 }
-            }, 500);
+            }, 2000);
 
         //停止
         }else if(mButton2.getText().toString().equals("停止")){
