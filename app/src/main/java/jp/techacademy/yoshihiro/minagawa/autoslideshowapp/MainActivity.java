@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,7 +16,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.os.Handler;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -25,6 +28,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView mTextView;
     private Button mButton1, mButton2, mButton3;
     private Handler mHandler = new Handler();
+    private Timer mTimer = null;
+    private MyTimerTask mMyTimerTask = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -134,14 +139,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mButton1.setEnabled(false);
             mButton3.setEnabled(false);
 
-            //1000ms毎に1枚ずつ次の画像へ
+
+/*            //1000ms毎に1枚ずつ次の画像へ
             mHandler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     goForwardImage();
                     mHandler.postDelayed(this, 2000);
                 }
-            }, 2000);
+            }, 2000);*/
+
+            if(mTimer==null){
+                //TimerとTimerTaskはcancel()時に破棄されるのでインスタンスを作りなおす
+                mMyTimerTask = new MyTimerTask();
+                //デーモンスレッドのときはtrue
+                mTimer = new Timer(true);
+                //schedule(TimerTask, delay, period)
+                mTimer.schedule(mMyTimerTask, 0, 2000);
+            }
+
 
         //停止
         }else if(mButton2.getText().toString().equals("停止")){
@@ -149,7 +165,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             mButton1.setEnabled(true);
             mButton3.setEnabled(true);
 
-            mHandler.removeCallbacksAndMessages(null);
+            if(mTimer !=null){
+                mTimer.cancel();
+                mTimer = null;
+            }
+
+//            mHandler.removeCallbacksAndMessages(null);
 
         }
     }
@@ -177,6 +198,20 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mTextView.setText(mCursor.getPosition()+1 + "/" + mNumImage);
     }
+
+    class MyTimerTask extends TimerTask {
+
+        @Override
+        public void run() {
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    goForwardImage();
+                }
+            });
+        }
+    }
+
 
 }
 
